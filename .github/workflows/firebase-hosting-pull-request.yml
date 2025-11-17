@@ -7,6 +7,7 @@ permissions:
   checks: write
   contents: read
   pull-requests: write
+
 jobs:
   build_and_preview:
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
@@ -14,10 +15,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Read Flutter version from .fvmrc
+        id: fvm
+        run: |
+          VERSION=$(jq -r '.flutter' .fvmrc)
+          echo "Using Flutter version: $VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: 'stable'
+          flutter-version: ${{ steps.fvm.outputs.VERSION }}
 
       - name: Build Flutter Web
         run: flutter pub get && flutter build web --release
