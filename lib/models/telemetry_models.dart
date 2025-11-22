@@ -17,6 +17,31 @@ Map<String, dynamic> safeMapCast(dynamic map) {
   return result;
 }
 
+// --- METADATA & CLIENT PROVIDED MODELS ---
+
+class AtlasMetadata extends Equatable {
+  final int collectedAtMs;
+  final String collectedBy;
+  final String mode;
+
+  const AtlasMetadata({
+    required this.collectedAtMs,
+    required this.collectedBy,
+    required this.mode,
+  });
+
+  factory AtlasMetadata.fromJson(Map<String, dynamic> json) {
+    return AtlasMetadata(
+      collectedAtMs: json['collected_at_ms'] as int? ?? 0,
+      collectedBy: json['collected_by'] as String? ?? 'N/A',
+      mode: json['mode'] as String? ?? 'N/A',
+    );
+  }
+
+  @override
+  List<Object> get props => [collectedAtMs, collectedBy, mode];
+}
+
 // --- BASE MODELS (Nested Data) ---
 
 class AppInfo extends Equatable {
@@ -712,6 +737,8 @@ class UsbInfo extends Equatable {
 class TelemetrySnapshot extends Equatable {
   final String timestampKey;
   final DateTime collectedAt;
+  final AtlasMetadata atlasMetadata;
+  final Map<String, dynamic> clientProvided;
   final AppInfo appInfo;
   final AppStorage appStorage;
   final AppsMemoryInfo appsMemory;
@@ -740,11 +767,13 @@ class TelemetrySnapshot extends Equatable {
   final VibratorInfo vibrator;
   final VpnInfo vpnInfo;
   final WifiInfo wifi;
-  final UsbInfo usb; // Added usb
+  final UsbInfo usb; 
 
   const TelemetrySnapshot({
     required this.timestampKey,
     required this.collectedAt,
+    required this.atlasMetadata,
+    required this.clientProvided,
     required this.appInfo,
     required this.appStorage,
     required this.appsMemory,
@@ -773,15 +802,17 @@ class TelemetrySnapshot extends Equatable {
     required this.vibrator,
     required this.vpnInfo,
     required this.wifi,
-    required this.usb, // Added usb
+    required this.usb,
   });
 
   factory TelemetrySnapshot.fromJson(String timestampKey, Map<String, dynamic> json) {
-    final collectedAtMs = json['atlas_metadata']?['collected_at_ms'] as int? ?? 0;
+    final atlasMetadata = AtlasMetadata.fromJson(safeMapCast(json['atlas_metadata']));
 
     return TelemetrySnapshot(
       timestampKey: timestampKey,
-      collectedAt: DateTime.fromMillisecondsSinceEpoch(collectedAtMs),
+      collectedAt: DateTime.fromMillisecondsSinceEpoch(atlasMetadata.collectedAtMs),
+      atlasMetadata: atlasMetadata,
+      clientProvided: safeMapCast(json['client_provided']),
       appInfo: AppInfo.fromJson(safeMapCast(json['app_info'])),
       appStorage: AppStorage.fromJson(safeMapCast(json['app_storage'])),
       appsMemory: AppsMemoryInfo.fromJson(safeMapCast(json['apps_memory'])),
@@ -810,7 +841,7 @@ class TelemetrySnapshot extends Equatable {
       vibrator: VibratorInfo.fromJson(safeMapCast(json['vibrator'])),
       vpnInfo: VpnInfo.fromJson(safeMapCast(json['vpn_info'])),
       wifi: WifiInfo.fromJson(safeMapCast(json['wifi'])),
-      usb: UsbInfo.fromJson(safeMapCast(json['usb'])), // Added usb
+      usb: UsbInfo.fromJson(safeMapCast(json['usb'])),
     );
   }
 
@@ -820,6 +851,8 @@ class TelemetrySnapshot extends Equatable {
   List<Object> get props => [
     timestampKey,
     collectedAt,
+    atlasMetadata,
+    clientProvided,
     appInfo,
     appStorage,
     appsMemory,
@@ -848,7 +881,7 @@ class TelemetrySnapshot extends Equatable {
     vibrator,
     vpnInfo,
     wifi,
-    usb, // Added usb
+    usb,
   ];
 }
 
@@ -871,25 +904,27 @@ class DeviceData extends Equatable {
 
     final rawSnapshots = safeMapCast(json['snapshots']);
 
-    rawSnapshots.forEach((key, value) {
-      if (key is String && value is Map) {
-        final snapshot = TelemetrySnapshot.fromJson(key, safeMapCast(value));
-        snapshots[key] = snapshot;
-        latestModel = snapshot.build.model;
-      }
-    });
-
     // Sort snapshots by timestamp (latest first)
-    final sortedKeys = snapshots.keys.toList()
+    final sortedKeys = rawSnapshots.keys.toList()
       ..sort((a, b) => int.parse(b).compareTo(int.parse(a)));
 
-    final sortedSnapshots = {
-      for (var key in sortedKeys) key: snapshots[key]!
-    };
+    // Take only the last 30 snapshots
+    final recentKeys = sortedKeys.take(30);
+
+    for (var key in recentKeys) {
+      final value = rawSnapshots[key];
+      if (value is Map) {
+        final snapshot = TelemetrySnapshot.fromJson(key, safeMapCast(value));
+        snapshots[key] = snapshot;
+        if (latestModel == 'N/A') {
+          latestModel = snapshot.build.model;
+        }
+      }
+    }
 
     return DeviceData(
       deviceId: deviceId,
-      snapshots: sortedSnapshots,
+      snapshots: snapshots,
       deviceModel: latestModel,
     );
   }

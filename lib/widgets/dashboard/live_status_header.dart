@@ -8,7 +8,13 @@ import 'package:atlas_dashboard/bloc/dashboard_bloc.dart';
 
 class LiveStatusHeader extends StatelessWidget {
   final DashboardLoaded state;
-  const LiveStatusHeader({super.key, required this.state});
+  final VoidCallback onSettingsTap;
+
+  const LiveStatusHeader({
+    super.key,
+    required this.state,
+    required this.onSettingsTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -32,11 +38,11 @@ class LiveStatusHeader extends StatelessWidget {
               ),
               Row(
                 children: [
-                  _buildDropdown( // FIX: This is now a custom-styled DropdownButton
+                  _buildDropdown(
                     context,
                     state.selectedClientId,
                     state.data.clients.keys.toList(),
-                        (newId) {
+                    (newId) {
                       if (newId != null) {
                         context.read<DashboardBloc>().add(SelectClient(newId));
                       }
@@ -44,11 +50,11 @@ class LiveStatusHeader extends StatelessWidget {
                     "Select Client",
                   ),
                   const SizedBox(width: 16),
-                  _buildDropdown( // FIX: This is now a custom-styled DropdownButton
+                  _buildDropdown(
                     context,
                     state.selectedDeviceId,
                     state.data.clients[state.selectedClientId]?.devices.keys.toList() ?? [],
-                        (newId) {
+                    (newId) {
                       if (newId != null) {
                         context.read<DashboardBloc>().add(SelectDevice(newId));
                       }
@@ -56,8 +62,12 @@ class LiveStatusHeader extends StatelessWidget {
                     "Select Device",
                   ),
                   const SizedBox(width: 24),
-                  // FIX: This now shows "Xm Ys ago"
                   _LivePulse(lastSyncTime: state.latestSnapshot!.collectedAt),
+                  const SizedBox(width: 24),
+                  IconButton(
+                    icon: const Icon(Icons.settings),
+                    onPressed: onSettingsTap,
+                  ),
                 ],
               ),
             ],
@@ -67,59 +77,45 @@ class LiveStatusHeader extends StatelessWidget {
     );
   }
 
-  // FIX: Replaced DropdownMenu with a styled DropdownButton
   Widget _buildDropdown(
-      BuildContext context,
-      String? selectedValue,
-      List<String> items,
-      ValueChanged<String?> onSelected,
-      String hintText,
-      ) {
-
+    BuildContext context,
+    String? selectedValue,
+    List<String> items,
+    ValueChanged<String?> onSelected,
+    String hintText,
+  ) {
     final bool isDisabled = items.isEmpty;
     String? displayValue = selectedValue;
 
-    // Ensure selectedValue is in the list, otherwise DropdownButton will error
     if (selectedValue != null && !items.contains(selectedValue)) {
       displayValue = null;
     }
 
     return Container(
       width: 200,
-      height: 40, // Give it a fixed height
+      height: 40,
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
       decoration: BoxDecoration(
-        color: AppTheme.glassColor.withOpacity(0.2), // Glassy BG
+        color: AppTheme.glassColor.withOpacity(0.2),
         borderRadius: BorderRadius.circular(8.0),
-        border: Border.all(color: Colors.white24, width: 0.5), // Subtle border
+        border: Border.all(color: Colors.white24, width: 0.5),
       ),
-      // FIX: Wrap in a Theme widget to control the menu's background color
       child: Theme(
         data: Theme.of(context).copyWith(
-          // This forces the dropdown menu background to be dark
-          canvasColor: Colors.grey[900], // A solid dark color
+          canvasColor: Colors.grey[900],
         ),
-        child: DropdownButtonHideUnderline( // Remove the default ugly underline
+        child: DropdownButtonHideUnderline(
           child: DropdownButton<String>(
             value: displayValue,
-            onChanged: isDisabled ? null : onSelected, // Disable if no items
-            isExpanded: true, // To fill the container
-
-            // This is a fallback, but canvasColor is the main fix
-            dropdownColor: Colors.grey[900], // A solid dark color
-
-            // Style the selected item's text
+            onChanged: isDisabled ? null : onSelected,
+            isExpanded: true,
+            dropdownColor: Colors.grey[900],
             style: const TextStyle(color: Colors.white, fontSize: 14),
-
-            // Style the icon
             icon: Icon(Icons.arrow_drop_down, color: isDisabled ? Colors.grey : Colors.white),
-
-            // Hint for when no value is selected (or items are empty)
             hint: Text(
               isDisabled ? "No devices" : hintText,
               style: const TextStyle(color: Colors.white54, fontSize: 14),
             ),
-
             items: items.map((String value) {
               return DropdownMenuItem<String>(
                 value: value,
@@ -165,13 +161,11 @@ class _LivePulseState extends State<_LivePulse> with SingleTickerProviderStateMi
   @override
   void didUpdateWidget(covariant _LivePulse oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Refresh time if the snapshot updates
     if (widget.lastSyncTime != oldWidget.lastSyncTime) {
       _updateTime();
     }
   }
 
-  // FIX: Changed from HH:MM:SS to "Xm Ys ago"
   void _updateTime() {
     if (!mounted) return;
     final now = DateTime.now().toUtc();
@@ -181,7 +175,6 @@ class _LivePulseState extends State<_LivePulse> with SingleTickerProviderStateMi
     });
   }
 
-  // FIX: Added this helper function
   String _formatDuration(Duration d) {
     if (d.isNegative) return "just now";
 
@@ -221,7 +214,6 @@ class _LivePulseState extends State<_LivePulse> with SingleTickerProviderStateMi
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text("LIVE (Synced $syncTimeStr)", style: Theme.of(context).textTheme.bodyMedium),
-            // FIX: This now shows "Xm Ys ago"
             Text(_timeAgo, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white70)),
           ],
         )

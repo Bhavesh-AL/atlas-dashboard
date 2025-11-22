@@ -1,4 +1,5 @@
 import 'package:atlas_dashboard/screens/pages/UsbPage.dart';
+import 'package:atlas_dashboard/screens/pages/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:atlas_dashboard/bloc/dashboard_bloc.dart';
@@ -16,6 +17,7 @@ import 'package:atlas_dashboard/screens/pages/sensors_page.dart';
 import 'package:atlas_dashboard/screens/pages/codecs_page.dart';
 import 'package:atlas_dashboard/screens/pages/permissions_page.dart';
 import 'package:atlas_dashboard/screens/pages/location_page.dart';
+import 'package:atlas_dashboard/screens/pages/client_page.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -25,7 +27,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  int _selectedIndex = 0;
+  int _pageIndex = 0; // The actual page being shown
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +56,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             return const Center(child: Text("No device data available."));
           }
 
+          // All available pages
           final List<Widget> pages = [
             OverviewPage(device: device),
             SystemPage(device: device),
@@ -66,26 +69,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
             CodecsPage(snapshot: snapshot),
             PermissionsPage(snapshot: snapshot),
             UsbPage(device: device),
+            ClientPage(snapshot: snapshot),
+            const SettingsPage(),
           ];
+
+          // The navigation rail doesn't have a settings icon, so its index can be out of bounds.
+          // We pass a separate, nullable index to the rail.
+          int? railIndex;
+          if (_pageIndex < 12) { // 12 is the number of icons in the rail
+            railIndex = _pageIndex;
+          }
 
           return SafeArea(
             child: Row(
               children: [
                 GlassNavigationRail(
-                  selectedIndex: _selectedIndex,
+                  selectedIndex: railIndex,
                   onDestinationSelected: (index) {
                     setState(() {
-                      _selectedIndex = index;
+                      _pageIndex = index;
                     });
                   },
                 ),
                 Expanded(
                   child: Column(
                     children: [
-                      LiveStatusHeader(state: state),
+                      LiveStatusHeader(
+                        state: state,
+                        onSettingsTap: () {
+                          setState(() {
+                            _pageIndex = 12;
+                          });
+                        },
+                      ),
                       Expanded(
                         child: IndexedStack(
-                          index: _selectedIndex,
+                          index: _pageIndex,
                           children: pages,
                         ),
                       ),

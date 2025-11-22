@@ -1,5 +1,6 @@
 import 'package:atlas_dashboard/app_theme.dart';
 import 'package:atlas_dashboard/models/telemetry_models.dart';
+import 'package:atlas_dashboard/widgets/dashboard/atlas_metadata_card.dart';
 import 'package:atlas_dashboard/widgets/dashboard/current_sensors_card.dart';
 import 'package:atlas_dashboard/widgets/dashboard/device_info_card.dart';
 import 'package:atlas_dashboard/widgets/dashboard/overview_location_card.dart';
@@ -74,28 +75,34 @@ class OverviewPage extends StatelessWidget {
           children: [
             Expanded(
               flex: 2,
-              child: GlassCard(
-                child: Column(
-                  children: [
-                    const InfoHeader(title: "Live Gauges"),
-                    const SizedBox(height: 8),
-                    _buildGauge(context, "RAM Used", snapshot.memory.availMem,
-                        snapshot.memory.totalMem, AppTheme.neonBlue),
-                    _buildGauge(
-                        context,
-                        "App Storage",
-                        snapshot.appStorage.appDataBytes,
-                        snapshot.appStorage.appTotalBytes,
-                        Colors.orangeAccent),
-                    _buildGauge(
-                        context,
-                        "Device Storage",
-                        snapshot.storage.availableBytes,
-                        snapshot.storage.totalBytes,
-                        AppTheme.neonPink,
-                        invert: true),
-                  ],
-                ),
+              child: Column(
+                children: [
+                  GlassCard(
+                    child: Column(
+                      children: [
+                        const InfoHeader(title: "Live Gauges"),
+                        const SizedBox(height: 8),
+                        _buildGauge(context, "RAM Used", snapshot.memory.availMem,
+                            snapshot.memory.totalMem, AppTheme.neonBlue),
+                        _buildGauge(
+                            context,
+                            "App Storage",
+                            snapshot.appStorage.appDataBytes,
+                            snapshot.appStorage.appTotalBytes,
+                            Colors.orangeAccent),
+                        _buildGauge(
+                            context,
+                            "Device Storage",
+                            snapshot.storage.availableBytes,
+                            snapshot.storage.totalBytes,
+                            AppTheme.neonPink,
+                            invert: true),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  AtlasMetadataCard(atlasMetadata: snapshot.atlasMetadata),
+                ],
               ),
             ),
             const SizedBox(width: 16),

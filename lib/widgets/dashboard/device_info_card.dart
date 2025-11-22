@@ -9,13 +9,13 @@ import '../shared/stat_line.dart';
 class DeviceInfoCard extends StatefulWidget {
   final BuildInfo buildInfo;
   final AppInfo appInfo;
-  final DateTime lastUpdate; // FIX: Added this
+  final DateTime lastUpdate;
 
   const DeviceInfoCard({
     super.key,
     required this.buildInfo,
     required this.appInfo,
-    required this.lastUpdate, // FIX: Added this
+    required this.lastUpdate,
   });
 
   @override

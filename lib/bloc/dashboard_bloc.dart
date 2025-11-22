@@ -27,6 +27,8 @@ class SelectDevice extends DashboardEvent {
   List<Object> get props => [deviceId];
 }
 
+class DeleteAllSnapshots extends DashboardEvent {}
+
 
 // --- States ---
 abstract class DashboardState extends Equatable {
@@ -77,6 +79,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     on<LoadDashboardData>(_onLoadDashboardData);
     on<SelectClient>(_onSelectClient);
     on<SelectDevice>(_onSelectDevice);
+    on<DeleteAllSnapshots>(_onDeleteAllSnapshots);
   }
 
   Future<void> _onLoadDashboardData(
@@ -169,6 +172,19 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
         selectedClientId: loadedState.selectedClientId,
         selectedDeviceId: event.deviceId,
       ));
+    }
+  }
+
+  Future<void> _onDeleteAllSnapshots(
+      DeleteAllSnapshots event, Emitter<DashboardState> emit) async {
+    if (state is DashboardLoaded) {
+      final loadedState = state as DashboardLoaded;
+      final devicePath = 'clients/${loadedState.selectedClientId}/devices/${loadedState.selectedDeviceId}/snapshots';
+      try {
+        await _dbRef.child(devicePath).remove();
+      } catch (e) {
+        emit(DashboardError("Failed to delete snapshots: $e"));
+      }
     }
   }
 }
