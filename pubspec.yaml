@@ -14,8 +14,8 @@ dependencies:
   flutter_bloc: ^8.1.5
 
   # Firebase
-  firebase_core: ^3.1.0
-  firebase_database: ^11.1.0
+  firebase_core: ^4.2.1
+  firebase_database: ^12.1.0
 
   # Utilities
   equatable: ^2.0.5
@@ -29,6 +29,7 @@ dependencies:
 
   flutter_map: ^8.0.2  # For the map
   latlong2: ^0.9.1
+  firebase_auth: ^6.1.2
 
 dev_dependencies:
   flutter_test:

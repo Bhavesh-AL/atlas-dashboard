@@ -29,6 +29,26 @@ class SelectDevice extends DashboardEvent {
 
 class DeleteAllSnapshots extends DashboardEvent {}
 
+class ToggleClientStatus extends DashboardEvent {
+  final String clientId;
+  final bool isEnabled;
+
+  const ToggleClientStatus(this.clientId, this.isEnabled);
+
+  @override
+  List<Object> get props => [clientId, isEnabled];
+}
+
+class DeleteDeviceData extends DashboardEvent {
+  final String clientId;
+  final String deviceId;
+
+  const DeleteDeviceData({required this.clientId, required this.deviceId});
+
+  @override
+  List<Object> get props => [clientId, deviceId];
+}
+
 
 // --- States ---
 abstract class DashboardState extends Equatable {
@@ -80,6 +100,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     on<SelectClient>(_onSelectClient);
     on<SelectDevice>(_onSelectDevice);
     on<DeleteAllSnapshots>(_onDeleteAllSnapshots);
+    on<ToggleClientStatus>(_onToggleClientStatus);
+    on<DeleteDeviceData>(_onDeleteDeviceData);
   }
 
   Future<void> _onLoadDashboardData(
@@ -185,6 +207,24 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       } catch (e) {
         emit(DashboardError("Failed to delete snapshots: $e"));
       }
+    }
+  }
+
+  Future<void> _onToggleClientStatus(
+    ToggleClientStatus event, Emitter<DashboardState> emit) async {
+    try {
+      await _dbRef.child('clients/${event.clientId}').update({'isEnabled': event.isEnabled});
+    } catch (e) {
+      emit(const DashboardError("Failed to toggle client status"));
+    }
+  }
+
+  Future<void> _onDeleteDeviceData(
+    DeleteDeviceData event, Emitter<DashboardState> emit) async {
+    try {
+      await _dbRef.child('clients/${event.clientId}/devices/${event.deviceId}').remove();
+    } catch (e) {
+      emit(DashboardError("Failed to delete device data: $e"));
     }
   }
 }

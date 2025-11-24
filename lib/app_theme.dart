@@ -26,6 +26,22 @@ class AppTheme {
       // This is the default glass color for GlassCard
       dividerColor: neonBlue.withOpacity(0.3),
 
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: glassColor,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: neonBlue.withOpacity(0.5), width: 1),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: neonPink, width: 2),
+        ),
+        labelStyle: GoogleFonts.poppins(color: Colors.white70),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      ),
+
       textTheme: GoogleFonts.poppinsTextTheme(
         baseTextTheme.copyWith(
           displayLarge: baseTextTheme.displayLarge
@@ -62,9 +78,9 @@ class AppTheme {
       // Theme for NavigationRail (side)
       navigationRailTheme: NavigationRailThemeData(
         backgroundColor: Colors.white.withOpacity(0.05),
-        indicatorColor: neonBlue.withOpacity(0.3),
-        selectedIconTheme: const IconThemeData(color: neonBlue),
-        unselectedIconTheme: const IconThemeData(color: Colors.white70),
+        indicatorColor: Colors.transparent, // Disable the default indicator
+        selectedIconTheme: const IconThemeData(color: neonBlue, size: 30),
+        unselectedIconTheme: const IconThemeData(color: Colors.white70, size: 30),
         selectedLabelTextStyle: const TextStyle(color: neonBlue),
         unselectedLabelTextStyle: const TextStyle(color: Colors.white70),
       ),
@@ -76,23 +92,7 @@ class AppTheme {
           color: Colors.white.withOpacity(0.9),
           fontSize: 14,
         ),
-        // This styles the container (the input field)
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: glassColor.withOpacity(0.8),
-          // Using the glass color for the field
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: neonBlue.withOpacity(0.5), width: 1),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: neonPink, width: 2),
-          ),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        ),
-        // This styles the menu that appears
+        // The input decoration is now handled globally by inputDecorationTheme
         menuStyle: MenuStyle(
           backgroundColor: MaterialStateProperty.all(darkBackground),
           surfaceTintColor: MaterialStateProperty.all(darkBackground),
@@ -103,6 +103,20 @@ class AppTheme {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  static ButtonStyle getElevatedButtonStyle(ThemeData theme) {
+    return ElevatedButton.styleFrom(
+      backgroundColor: theme.colorScheme.secondary,
+      foregroundColor: Colors.black,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      textStyle: GoogleFonts.poppins(
+        fontWeight: FontWeight.w600,
+        fontSize: 16,
       ),
     );
   }

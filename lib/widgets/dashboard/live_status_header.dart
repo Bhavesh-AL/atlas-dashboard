@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'dart:ui';
+import 'package:atlas_dashboard/bloc/auth_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:atlas_dashboard/app_theme.dart';
 import 'package:atlas_dashboard/bloc/dashboard_bloc.dart';
 
-class LiveStatusHeader extends StatelessWidget {
+class LiveStatusHeader extends StatelessWidget implements PreferredSizeWidget {
   final DashboardLoaded state;
   final VoidCallback onSettingsTap;
 
@@ -63,10 +64,18 @@ class LiveStatusHeader extends StatelessWidget {
                   ),
                   const SizedBox(width: 24),
                   _LivePulse(lastSyncTime: state.latestSnapshot!.collectedAt),
-                  const SizedBox(width: 24),
+                  const SizedBox(width: 16),
                   IconButton(
                     icon: const Icon(Icons.settings),
+                    tooltip: 'Settings',
                     onPressed: onSettingsTap,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.logout),
+                    tooltip: 'Logout',
+                    onPressed: () {
+                      context.read<AuthBloc>().add(LogoutRequested());
+                    },
                   ),
                 ],
               ),
@@ -131,6 +140,9 @@ class LiveStatusHeader extends StatelessWidget {
       ),
     );
   }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight + 24);
 }
 
 class _LivePulse extends StatefulWidget {

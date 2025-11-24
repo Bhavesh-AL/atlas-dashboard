@@ -1,11 +1,12 @@
+import 'package:atlas_dashboard/bloc/auth_bloc.dart';
+import 'package:atlas_dashboard/screens/dashboard_wrapper.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:atlas_dashboard/app_theme.dart';
 import 'package:atlas_dashboard/bloc/dashboard_bloc.dart';
-
-
-import 'dashboard/dashboard_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,13 +30,23 @@ class AtlasDashboardApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => DashboardBloc()..add(LoadDashboardData()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => AuthBloc(
+            FirebaseAuth.instance,
+            FirebaseDatabase.instance.ref(),
+          ),
+        ),
+        BlocProvider(
+          create: (context) => DashboardBloc()..add(LoadDashboardData()),
+        ),
+      ],
       child: MaterialApp(
         title: 'ATLAS Dashboard',
         theme: AppTheme.darkTheme,
         home: const _AppBackground(
-          child: DashboardScreen(),
+          child: DashboardWrapper(),
         ),
         debugShowCheckedModeBanner: false,
       ),

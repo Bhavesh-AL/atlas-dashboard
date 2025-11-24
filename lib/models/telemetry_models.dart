@@ -940,19 +940,28 @@ class DeviceData extends Equatable {
 class ClientData extends Equatable {
   final String clientId;
   final Map<String, DeviceData> devices;
+  final bool isEnabled;
 
-  const ClientData({required this.clientId, required this.devices});
+  const ClientData({
+    required this.clientId,
+    required this.devices,
+    required this.isEnabled,
+  });
 
   factory ClientData.fromJson(String clientId, Map<String, dynamic> json) {
     final devices = <String, DeviceData>{};
     safeMapCast(json['devices']).forEach((key, value) {
       devices[key] = DeviceData.fromJson(key, safeMapCast(value));
     });
-    return ClientData(clientId: clientId, devices: devices);
+    return ClientData(
+      clientId: clientId,
+      devices: devices,
+      isEnabled: json['isEnabled'] as bool? ?? true,
+    );
   }
 
   @override
-  List<Object> get props => [clientId, devices];
+  List<Object> get props => [clientId, devices, isEnabled];
 }
 
 class DashboardData extends Equatable {

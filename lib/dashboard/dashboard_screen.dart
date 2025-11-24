@@ -1,9 +1,9 @@
 import 'package:atlas_dashboard/screens/pages/UsbPage.dart';
 import 'package:atlas_dashboard/screens/pages/settings_page.dart';
+import 'package:atlas_dashboard/widgets/dashboard/live_status_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:atlas_dashboard/bloc/dashboard_bloc.dart';
-import 'package:atlas_dashboard/widgets/dashboard/live_status_header.dart';
 import 'package:atlas_dashboard/widgets/shared/glass_navigation_rail.dart';
 
 // Import all the pages
@@ -27,96 +27,96 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  int _pageIndex = 0; // The actual page being shown
+  int _pageIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<DashboardBloc, DashboardState>(
-      builder: (context, state) {
-        if (state is DashboardLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (state is DashboardError) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Text(
-                'Error: ${state.message}',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleLarge,
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: BlocBuilder<DashboardBloc, DashboardState>(
+        builder: (context, state) {
+          if (state is DashboardLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (state is DashboardError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Text(
+                  'Error: ${state.message}',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
               ),
-            ),
-          );
-        }
-        if (state is DashboardLoaded) {
-          final device = state.selectedDevice;
-          final snapshot = state.latestSnapshot;
-
-          if (device == null || snapshot == null) {
-            return const Center(child: Text("No device data available."));
+            );
           }
+          if (state is DashboardLoaded) {
+            final device = state.selectedDevice;
+            final snapshot = state.latestSnapshot;
 
-          // All available pages
-          final List<Widget> pages = [
-            OverviewPage(device: device),
-            SystemPage(device: device),
-            NetworkPage(device: device),
-            ConnectivityPage(snapshot: snapshot),
-            HardwarePage(snapshot: snapshot),
-            LocationPage(device: device),
-            AppsPage(snapshot: snapshot),
-            SensorsPage(device: device),
-            CodecsPage(snapshot: snapshot),
-            PermissionsPage(snapshot: snapshot),
-            UsbPage(device: device),
-            ClientPage(snapshot: snapshot),
-            const SettingsPage(),
-          ];
+            if (device == null || snapshot == null) {
+              return const Center(child: Text("No device data available."));
+            }
 
-          // The navigation rail doesn't have a settings icon, so its index can be out of bounds.
-          // We pass a separate, nullable index to the rail.
-          int? railIndex;
-          if (_pageIndex < 12) { // 12 is the number of icons in the rail
-            railIndex = _pageIndex;
-          }
+            final List<Widget> pages = [
+              OverviewPage(device: device),
+              SystemPage(device: device),
+              NetworkPage(device: device),
+              ConnectivityPage(snapshot: snapshot),
+              HardwarePage(snapshot: snapshot),
+              LocationPage(device: device),
+              AppsPage(snapshot: snapshot),
+              SensorsPage(device: device),
+              CodecsPage(snapshot: snapshot),
+              PermissionsPage(snapshot: snapshot),
+              UsbPage(device: device),
+              ClientPage(snapshot: snapshot),
+              const SettingsPage(),
+            ];
 
-          return SafeArea(
-            child: Row(
-              children: [
-                GlassNavigationRail(
-                  selectedIndex: railIndex,
-                  onDestinationSelected: (index) {
-                    setState(() {
-                      _pageIndex = index;
-                    });
-                  },
-                ),
-                Expanded(
-                  child: Column(
-                    children: [
-                      LiveStatusHeader(
-                        state: state,
-                        onSettingsTap: () {
-                          setState(() {
-                            _pageIndex = 12;
-                          });
-                        },
-                      ),
-                      Expanded(
-                        child: IndexedStack(
-                          index: _pageIndex,
-                          children: pages,
-                        ),
-                      ),
-                    ],
+            int? railIndex;
+            if (_pageIndex < 12) {
+              railIndex = _pageIndex;
+            }
+
+            return SafeArea(
+              child: Row(
+                children: [
+                  GlassNavigationRail(
+                    selectedIndex: railIndex,
+                    onDestinationSelected: (index) {
+                      setState(() {
+                        _pageIndex = index;
+                      });
+                    },
                   ),
-                ),
-              ],
-            ),
-          );
-        }
-        return const Center(child: Text("Unknown state."));
-      },
+                  Expanded(
+                    child: Column(
+                      children: [
+                        LiveStatusHeader(
+                          state: state,
+                          onSettingsTap: () {
+                            setState(() {
+                              _pageIndex = pages.length - 1;
+                            });
+                          },
+                        ),
+                        Expanded(
+                          child: IndexedStack(
+                            index: _pageIndex,
+                            children: pages,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+          return const Center(child: Text("Unknown state."));
+        },
+      ),
     );
   }
 }
